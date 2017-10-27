@@ -4,8 +4,6 @@ import scala.reflect.macros._
 import scala.language.experimental.macros
 import scala.annotation.StaticAnnotation
 
-import CrossVersionDefs._
-
 object jsonMacroInstance extends jsonMacro(false)
 object jsonStrictMacroInstance extends jsonMacro(true)
 
@@ -42,7 +40,7 @@ class jsonstrict extends StaticAnnotation {
 }
 
 class jsonMacro(isStrict: Boolean) {
-  def impl(c: CrossVersionContext)(annottees: c.Expr[Any]*): c.Expr[Any] = {
+  def impl(c: blackbox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
 
     def extractClassNameAndFields(classDecl: ClassDef) = {

@@ -36,10 +36,9 @@ If you would rather stick to Play's default format even for single field case cl
 If you're using Play (version 2.1 or higher) with SBT, you should add the following settings to your build:
 
 ```scala
-
-libraryDependencies += "com.kifi" %% "json-annotation" % "0.2"
-
-addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full)
+resolvers += Resolver.bintrayRepo("returntocorp", "maven")
+libraryDependencies += "com.returntocorp" %% "json-annotation" % "0.2"
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 ```
 
 If you're not using Play, you will also need to add ```play-json``` to your dependencies:
@@ -48,7 +47,7 @@ If you're not using Play, you will also need to add ```play-json``` to your depe
 
 resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
 
-libraryDependencies += "com.typesafe.play" %% "play-json" % "2.2.1"
+libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.1"
 ```
 
-This library was tested with both Scala 2.10 and 2.11.
+This library was tested with both Scala 2.12
