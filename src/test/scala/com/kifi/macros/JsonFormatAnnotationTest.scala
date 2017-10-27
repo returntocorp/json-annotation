@@ -9,9 +9,18 @@ import play.api.libs.json._
 @jsonstrict case class City2(name: String)
 @jsonstrict case class Person2(name: String, age: Int)
 
+@json final case class FinalCaseClass(name: String)
+
 class JsonFormatAnnotationTest extends Specification {
 
   "@json annotation" should {
+
+    "create correct formatter for final case classes" in {
+      val finalCaseClass = FinalCaseClass("test")
+      val json = Json.toJson(finalCaseClass)
+      json === JsString("test")
+      Json.fromJson[FinalCaseClass](json).asOpt must beSome(finalCaseClass)
+    }
 
     "create correct formatter for case class with 1 field" in {
 

@@ -44,12 +44,11 @@ class jsonMacro(isStrict: Boolean) {
     import c.universe._
 
     def extractClassNameAndFields(classDecl: ClassDef) = {
-      try {
-        val q"case class $className(..$fields) extends ..$bases { ..$body }" = classDecl
-        (className, fields)
-      } catch {
-        case _: MatchError => c.abort(c.enclosingPosition, "Annotation is only supported on case class")
-      }
+        classDecl match {
+          case q"case class $className(..$fields) extends ..$bases { ..$body }" => (className, fields)
+          case q"final case class $className(..$fields) extends ..$bases { ..$body }" => (className, fields)
+          case _ => c.abort(c.enclosingPosition, "Annotation is only supported on case class")
+        }
     }
 
     def jsonFormatter(className: TypeName, fields: List[ValDef]) = {

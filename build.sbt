@@ -2,7 +2,7 @@ organization := "com.returntocorp"
 
 name := "json-annotation"
 
-version := "0.2"
+version := "0.3"
 
 scalaVersion := "2.12.2"
 
