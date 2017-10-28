@@ -1,6 +1,6 @@
 The __@json__ scala macro annotation is the quickest way to add a JSON format to your [Play](http://www.playframework.com/) project's case classes.
 
-#How it works
+## Usage
 Just add ```@json``` in front of your case class definition:
 
 ```scala
@@ -31,7 +31,7 @@ This is often more convenient than Play's default format ```{"name": "San Franci
 
 If you would rather stick to Play's default format even for single field case classes, you can use ```@jsonstrict``` instead of ```@json```.
 
-#Installation
+## Installation
 
 If you're using Play (version 2.1 or higher) with SBT, you should add the following settings to your build:
 
@@ -50,4 +50,18 @@ resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
 libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.1"
 ```
 
-This library was tested with both Scala 2.12
+This library was tested with Scala 2.12
+
+## Deploying
+The first time, you'll need to configure your bintray credentials:
+```
+> bintrayChangeCredentials
+```
+
+After that, you'll be able to publish:
+
+```
+> publish
+```
+
+Don't forget to bump the version number.
