@@ -2,7 +2,7 @@ organization := "com.returntocorp"
 
 name := "json-annotation"
 
-version := "0.3"
+version := "0.4"
 
 scalaVersion := "2.12.2"
 
@@ -18,6 +18,7 @@ libraryDependencies <+= (scalaVersion)("org.scala-lang" % "scala-reflect" % _)
 
 libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-json" % "2.6.1" % Test,
+  "ai.x" %% "play-json-extensions" % "0.10.0" % Test,
   "org.specs2" %% "specs2-core" % "4.0.0" % Test
 )
 

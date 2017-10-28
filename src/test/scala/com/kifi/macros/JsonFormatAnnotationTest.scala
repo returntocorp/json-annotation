@@ -2,16 +2,29 @@ package com.kifi.macros
 
 import org.specs2.mutable.Specification
 import play.api.libs.json._
+import ai.x.play.json.SingletonEncoder.simpleName
+import ai.x.play.json.implicits.formatSingleton
 
-@json case class City(name: String)
-@json case class Person(name: String, age: Int)
+@jsonInline case class City(name: String)
+@jsonInline case class Person(name: String, age: Int)
 
-@jsonstrict case class City2(name: String)
-@jsonstrict case class Person2(name: String, age: Int)
+@json case class City2(name: String)
+@json case class Person2(name: String, age: Int)
 
-@json final case class FinalCaseClass(name: String)
+@jsonInline final case class FinalCaseClass(name: String)
 
+@jsonSealed sealed trait Parent
+@jsonInline final case class C1(x: String, _type: C1.type = C1) extends Parent
+@jsonInline final case class C2(y: String, _type: C2.type = C2) extends Parent
 class JsonFormatAnnotationTest extends Specification {
+  "@sealedJson annotation" should {
+    "create correct formatter for sealed traits" in {
+      val c1 = C1("hello")
+      val c2 = C2("goodbye")
+      val json = Json.toJson(List(c1, c2))
+      Json.fromJson[List[Parent]](json).asOpt must beSome(List(c1, c2))
+    }
+  }
 
   "@json annotation" should {
 

@@ -4,8 +4,9 @@ import scala.reflect.macros._
 import scala.language.experimental.macros
 import scala.annotation.StaticAnnotation
 
-object jsonMacroInstance extends jsonMacro(false)
-object jsonStrictMacroInstance extends jsonMacro(true)
+object jsonMacroInstance extends jsonMacro(false, false)
+object jsonStrictMacroInstance extends jsonMacro(true, false)
+object jsonSealedMacroInstance extends jsonMacro(false, true)
 
 /**
  * "@json" macro annotation for case classes
@@ -21,8 +22,12 @@ object jsonStrictMacroInstance extends jsonMacro(true)
  *
  * then A(4) will be serialized as '4' instead of '{"value": 4}'.
  */
-class json extends StaticAnnotation {
+class jsonInline extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro jsonMacroInstance.impl
+}
+
+class jsonSealed extends StaticAnnotation {
+  def macroTransform(annottees: Any*): Any = macro jsonSealedMacroInstance.impl
 }
 
 /**
@@ -35,11 +40,11 @@ class json extends StaticAnnotation {
  *
  * then A(4) will be serialized as '{"value": 4}'.
  */
-class jsonstrict extends StaticAnnotation {
+class json extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro jsonStrictMacroInstance.impl
 }
 
-class jsonMacro(isStrict: Boolean) {
+class jsonMacro(isStrict: Boolean, formatSealed: Boolean) {
   def impl(c: blackbox.Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
 
@@ -51,13 +56,31 @@ class jsonMacro(isStrict: Boolean) {
         }
     }
 
+    def extractSealedTrait(classDecl: ClassDef) = {
+      classDecl match {
+        case q"sealed trait $className extends ..$bases { ..$body }" => className
+        case q"sealed trait $className" => className
+        case q"sealed trait $className { ..$body }" => className
+        case _ => c.abort(c.enclosingPosition, "Annotation is only supported on sealed traits")
+      }
+    }
+
+    def sealedFormatter(className: TypeName) = {
+      q"""
+         implicit lazy val format = {
+           import ai.x.play.json.Jsonx
+           Jsonx.formatSealed[$className]
+         }
+       """
+    }
+
     def jsonFormatter(className: TypeName, fields: List[ValDef]) = {
       fields.length match {
         case 0 => c.abort(c.enclosingPosition, "Cannot create json formatter for case class with no fields")
         case 1 if !isStrict => {
           // use the serializer for the field
           q"""
-            implicit val jsonAnnotationFormat = {
+            implicit val jsonAnnotationFormat: play.api.libs.json.Format[$className] = {
               import play.api.libs.json._
               Format(
                 __.read[${fields.head.tpt}].map(s => ${className.toTermName}(s)),
@@ -68,7 +91,7 @@ class jsonMacro(isStrict: Boolean) {
         }
         case _ => {
           // use Play's macro
-          q"implicit val jsonAnnotationFormat = play.api.libs.json.Json.format[$className]"
+          q"implicit val jsonAnnotationFormat: play.api.libs.json.Format[$className] = play.api.libs.json.Json.format[$className]"
         }
       }
     }
@@ -90,8 +113,13 @@ class jsonMacro(isStrict: Boolean) {
     }
 
     def modifiedDeclaration(classDecl: ClassDef, compDeclOpt: Option[ModuleDef] = None) = {
-      val (className, fields) = extractClassNameAndFields(classDecl)
-      val format = jsonFormatter(className, fields)
+      val (className, format) = if (formatSealed) {
+        val className = extractSealedTrait(classDecl)
+        className -> sealedFormatter(className)
+      } else {
+        val (className, fields) = extractClassNameAndFields(classDecl)
+        className -> jsonFormatter(className, fields)
+      }
       val compDecl = modifiedCompanion(compDeclOpt, format, className)
 
       // Return both the class and companion object declarations
