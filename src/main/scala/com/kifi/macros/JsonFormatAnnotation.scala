@@ -58,10 +58,10 @@ class jsonMacro(isStrict: Boolean, formatSealed: Boolean) {
 
     def extractSealedTrait(classDecl: ClassDef) = {
       classDecl match {
-        case q"sealed trait $className extends ..$bases { ..$body }" => className
-        case q"sealed trait $className" => className
-        case q"sealed trait $className { ..$body }" => className
-        case _ => c.abort(c.enclosingPosition, "Annotation is only supported on sealed traits")
+        case q"$_ trait $className[..$tparams] extends { ..$earlydefns } with ..$parents { $self => ..$stats }" => {
+          className
+        }
+        case other => c.abort(c.enclosingPosition, s"Annotation is only supported on sealed traits found $other")
       }
     }
 

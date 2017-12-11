@@ -4,6 +4,7 @@ import org.specs2.mutable.Specification
 import play.api.libs.json._
 import ai.x.play.json.SingletonEncoder.simpleName
 import ai.x.play.json.implicits.formatSingleton
+import org.specs2.matcher.Matchers
 
 @jsonInline case class City(name: String)
 @jsonInline case class Person(name: String, age: Int)
@@ -16,7 +17,15 @@ import ai.x.play.json.implicits.formatSingleton
 @jsonSealed sealed trait Parent
 @jsonInline final case class C1(x: String, _type: C1.type = C1) extends Parent
 @jsonInline final case class C2(y: String, _type: C2.type = C2) extends Parent
-class JsonFormatAnnotationTest extends Specification {
+
+@jsonSealed sealed trait ParentWithParams {
+  def v1: String
+  def v2: String
+}
+
+@json case class Child1(v1: String, v2: String, _type: Child1.type = Child1) extends ParentWithParams
+
+class JsonFormatAnnotationTest extends Specification with Matchers {
   "@sealedJson annotation" should {
     "create correct formatter for sealed traits" in {
       val c1 = C1("hello")
@@ -75,5 +84,6 @@ class JsonFormatAnnotationTest extends Specification {
       )
       Json.fromJson[Person2](json).asOpt must beSome(person)
     }
+
   }
 }
